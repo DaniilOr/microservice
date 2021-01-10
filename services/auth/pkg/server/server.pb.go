@@ -240,8 +240,8 @@ var file_server_proto_rawDesc = []byte{
 	0x6b, 0x65, 0x6e, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x74, 0x6f, 0x6b, 0x65, 0x6e,
 	0x22, 0x24, 0x0a, 0x0a, 0x49, 0x64, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x16,
 	0x0a, 0x06, 0x55, 0x73, 0x65, 0x72, 0x49, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x06,
-	0x55, 0x73, 0x65, 0x72, 0x49, 0x64, 0x32, 0x67, 0x0a, 0x0a, 0x50, 0x61, 0x79, 0x53, 0x65, 0x72,
-	0x76, 0x69, 0x63, 0x65, 0x12, 0x30, 0x0a, 0x05, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x12, 0x12, 0x2e,
+	0x55, 0x73, 0x65, 0x72, 0x49, 0x64, 0x32, 0x67, 0x0a, 0x0a, 0x41, 0x75, 0x74, 0x68, 0x53, 0x65,
+	0x72, 0x76, 0x65, 0x72, 0x12, 0x30, 0x0a, 0x05, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x12, 0x12, 0x2e,
 	0x61, 0x75, 0x74, 0x68, 0x2e, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
 	0x74, 0x1a, 0x13, 0x2e, 0x61, 0x75, 0x74, 0x68, 0x2e, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x52, 0x65,
 	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x27, 0x0a, 0x02, 0x49, 0x64, 0x12, 0x0f, 0x2e, 0x61,
@@ -271,10 +271,10 @@ var file_server_proto_goTypes = []interface{}{
 	(*IdResponse)(nil),    // 3: auth.IdResponse
 }
 var file_server_proto_depIdxs = []int32{
-	0, // 0: auth.PayService.Token:input_type -> auth.TokenRequest
-	2, // 1: auth.PayService.Id:input_type -> auth.IdRequest
-	1, // 2: auth.PayService.Token:output_type -> auth.TokenResponse
-	3, // 3: auth.PayService.Id:output_type -> auth.IdResponse
+	0, // 0: auth.AuthServer.Token:input_type -> auth.TokenRequest
+	2, // 1: auth.AuthServer.Id:input_type -> auth.IdRequest
+	1, // 2: auth.AuthServer.Token:output_type -> auth.TokenResponse
+	3, // 3: auth.AuthServer.Id:output_type -> auth.IdResponse
 	2, // [2:4] is the sub-list for method output_type
 	0, // [0:2] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
@@ -365,108 +365,108 @@ var _ grpc.ClientConnInterface
 // is compatible with the grpc package it is being compiled against.
 const _ = grpc.SupportPackageIsVersion6
 
-// PayServiceClient is the client API for PayService service.
+// AuthServerClient is the client API for AuthServer service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
-type PayServiceClient interface {
+type AuthServerClient interface {
 	Token(ctx context.Context, in *TokenRequest, opts ...grpc.CallOption) (*TokenResponse, error)
 	Id(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*IdResponse, error)
 }
 
-type payServiceClient struct {
+type authServerClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewPayServiceClient(cc grpc.ClientConnInterface) PayServiceClient {
-	return &payServiceClient{cc}
+func NewAuthServerClient(cc grpc.ClientConnInterface) AuthServerClient {
+	return &authServerClient{cc}
 }
 
-func (c *payServiceClient) Token(ctx context.Context, in *TokenRequest, opts ...grpc.CallOption) (*TokenResponse, error) {
+func (c *authServerClient) Token(ctx context.Context, in *TokenRequest, opts ...grpc.CallOption) (*TokenResponse, error) {
 	out := new(TokenResponse)
-	err := c.cc.Invoke(ctx, "/auth.PayService/Token", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/auth.AuthServer/Token", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *payServiceClient) Id(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*IdResponse, error) {
+func (c *authServerClient) Id(ctx context.Context, in *IdRequest, opts ...grpc.CallOption) (*IdResponse, error) {
 	out := new(IdResponse)
-	err := c.cc.Invoke(ctx, "/auth.PayService/Id", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/auth.AuthServer/Id", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-// PayServiceServer is the server API for PayService service.
-type PayServiceServer interface {
+// AuthServerServer is the server API for AuthServer service.
+type AuthServerServer interface {
 	Token(context.Context, *TokenRequest) (*TokenResponse, error)
 	Id(context.Context, *IdRequest) (*IdResponse, error)
 }
 
-// UnimplementedPayServiceServer can be embedded to have forward compatible implementations.
-type UnimplementedPayServiceServer struct {
+// UnimplementedAuthServerServer can be embedded to have forward compatible implementations.
+type UnimplementedAuthServerServer struct {
 }
 
-func (*UnimplementedPayServiceServer) Token(context.Context, *TokenRequest) (*TokenResponse, error) {
+func (*UnimplementedAuthServerServer) Token(context.Context, *TokenRequest) (*TokenResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Token not implemented")
 }
-func (*UnimplementedPayServiceServer) Id(context.Context, *IdRequest) (*IdResponse, error) {
+func (*UnimplementedAuthServerServer) Id(context.Context, *IdRequest) (*IdResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Id not implemented")
 }
 
-func RegisterPayServiceServer(s *grpc.Server, srv PayServiceServer) {
-	s.RegisterService(&_PayService_serviceDesc, srv)
+func RegisterAuthServerServer(s *grpc.Server, srv AuthServerServer) {
+	s.RegisterService(&_AuthServer_serviceDesc, srv)
 }
 
-func _PayService_Token_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _AuthServer_Token_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(TokenRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PayServiceServer).Token(ctx, in)
+		return srv.(AuthServerServer).Token(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/auth.PayService/Token",
+		FullMethod: "/auth.AuthServer/Token",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PayServiceServer).Token(ctx, req.(*TokenRequest))
+		return srv.(AuthServerServer).Token(ctx, req.(*TokenRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _PayService_Id_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _AuthServer_Id_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(IdRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(PayServiceServer).Id(ctx, in)
+		return srv.(AuthServerServer).Id(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/auth.PayService/Id",
+		FullMethod: "/auth.AuthServer/Id",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PayServiceServer).Id(ctx, req.(*IdRequest))
+		return srv.(AuthServerServer).Id(ctx, req.(*IdRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-var _PayService_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "auth.PayService",
-	HandlerType: (*PayServiceServer)(nil),
+var _AuthServer_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "auth.AuthServer",
+	HandlerType: (*AuthServerServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
 			MethodName: "Token",
-			Handler:    _PayService_Token_Handler,
+			Handler:    _AuthServer_Token_Handler,
 		},
 		{
 			MethodName: "Id",
-			Handler:    _PayService_Id_Handler,
+			Handler:    _AuthServer_Id_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

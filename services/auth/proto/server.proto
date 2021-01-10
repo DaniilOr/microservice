@@ -4,7 +4,7 @@ package auth;
 option go_package = "pkg/app/server";
 
 
-service PayService{
+service AuthServer{
   rpc Token(TokenRequest) returns(TokenResponse);
   rpc Id(IdRequest) returns(IdResponse);
 }
