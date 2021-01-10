@@ -3,13 +3,13 @@ package main
 
 import (
 	"context"
-	"github.com/go-chi/chi"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"google.golang.org/grpc"
 	"log"
 	"net"
-	"net/http"
 	"os"
 	"transactions/cmd/app"
+	serverPb "transactions/pkg/server"
 	"transactions/pkg/transactions"
 )
 
@@ -41,6 +41,10 @@ func main() {
 }
 
 func execute(addr string, dsn string) error {
+	listener, err := net.Listen("tcp", addr)
+	if err != nil {
+		return err
+	}
 	ctx := context.Background()
 	pool, err := pgxpool.Connect(ctx, dsn)
 	if err != nil {
@@ -48,19 +52,9 @@ func execute(addr string, dsn string) error {
 		return err
 	}
 
-	transactionsSvc := transactions.NewService(pool)
-	mux := chi.NewRouter()
-
-	application := app.NewServer(transactionsSvc, mux)
-	err = application.Init()
-	if err != nil {
-		log.Print(err)
-		return err
-	}
-
-	server := &http.Server{
-		Addr:    addr,
-		Handler: application,
-	}
-	return server.ListenAndServe()
+	grpcServer := grpc.NewServer()
+	transactionsSVC := transactions.NewService(pool)
+	server := app.NewServer(transactionsSVC, ctx)
+	serverPb.RegisterTransactionsServerServer(grpcServer, server)
+	return grpcServer.Serve(listener)
 }

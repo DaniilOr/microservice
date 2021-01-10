@@ -1,86 +1,39 @@
 package app
 
 import (
-	"encoding/json"
-	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/middleware"
+	"context"
+	serverPb "transactions/pkg/server"
 	"log"
-	"net/http"
-	"strconv"
 	"transactions/pkg/transactions"
 )
 
 type Server struct {
 	transactionsSvc *transactions.Service
-	mux             chi.Router
+	ctx context.Context
 }
 
-func NewServer(transactionsSvc *transactions.Service, mux chi.Router) *Server {
-	return &Server{transactionsSvc: transactionsSvc, mux: mux}
+func NewServer(transactionsSvc *transactions.Service, ctx context.Context) *Server {
+	return &Server{transactionsSvc: transactionsSvc, ctx: ctx}
 }
 
-func (s *Server) Init() error {
-	s.mux.Use(middleware.Logger)
+func (s *Server) Transactions(ctx context.Context, request * serverPb.TransactionsRequest) (*serverPb.TransactionsResponse, error){
 
-	s.mux.Route("/api", func(r chi.Router) {
-		r.Get("/transactions", s.transactions)
-	})
+	userID := request.UserID
 
-	return nil
-}
-
-func (s *Server) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
-	s.mux.ServeHTTP(writer, request)
-}
-
-func (s *Server) transactions(writer http.ResponseWriter, request *http.Request) {
-	userIDHeader := request.Header.Get("X-UserID")
-	if userIDHeader == "" {
-		http.Error(writer, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-		return
-	}
-
-	userID, err := strconv.ParseInt(userIDHeader, 10, 64)
+	records, err := s.transactionsSvc.Transactions(ctx, userID)
 	if err != nil {
-		http.Error(writer, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-		return
+		log.Println(err)
+		return nil, err
 	}
-
-	type Transaction struct {
-		ID       int64  `json:"id"`
-		UserID   int64  `json:"userId"`
-		Category string `json:"category"`
-		Amount   int64  `json:"amount"`
-		Created  int64  `json:"created"`
-	}
-	type responseDTO []Transaction
-	var respDTO responseDTO
-
-	records, err := s.transactionsSvc.Transactions(request.Context(), userID)
-	if err != nil {
-		http.Error(writer, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
-
+	var response serverPb.TransactionsResponse
 	for _, record := range records {
-		respDTO = append(respDTO, Transaction{
-			ID:       record.ID,
-			UserID:   record.UserID,
+		response.Items = append(response.Items, &serverPb.Transaction{
+			Id:       record.ID,
+			UserId:   record.UserID,
 			Category: record.Category,
 			Amount:   record.Amount,
 			Created:  record.Created,
 		})
 	}
-
-	data, err := json.Marshal(respDTO)
-	if err != nil {
-		http.Error(writer, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
-
-	writer.Header().Set("Content-Type", "application/json")
-	_, err = writer.Write(data)
-	if err != nil {
-		log.Print(err)
-	}
+	return &response, nil
 }
