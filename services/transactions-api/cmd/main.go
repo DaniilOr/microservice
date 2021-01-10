@@ -1,12 +1,13 @@
 package main
 
 import (
-	"github.com/go-chi/chi"
-	"log"
+	"context"
+	"google.golang.org/grpc"
 	"net"
 	"net/http"
 	"os"
 	"transactions-api/cmd/app"
+	serverPb "transactions-api/pkg/server"
 	"transactions-api/pkg/transactions"
 )
 
@@ -38,20 +39,14 @@ func main() {
 }
 
 func execute(addr string, transactionsURL string) error {
+	listener, err := net.Listen("tcp", addr)
+	if err != nil{
+		return nil
+	}
 	transactionsSvc := transactions.NewService(&http.Client{}, transactionsURL)
-
-	mux := chi.NewRouter()
-
-	application := app.NewServer(transactionsSvc, mux)
-	err := application.Init()
-	if err != nil {
-		log.Print(err)
-		return err
-	}
-
-	server := &http.Server{
-		Addr:    addr,
-		Handler: application,
-	}
-	return server.ListenAndServe()
+	ctx := context.Background()
+	grpcServer := grpc.NewServer()
+	server := app.NewServer(transactionsSvc, ctx)
+	serverPb.RegisterTransactionsServerServer(grpcServer, server)
+	return grpcServer.Serve(listener)
 }
