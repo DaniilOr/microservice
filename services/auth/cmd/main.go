@@ -54,6 +54,6 @@ func execute(addr string, dsn string) error {
 	grpcServer := grpc.NewServer()
 	authSVC := auth.NewService(pool)
 	server := app.NewServer(authSVC, ctx)
-	serverPb.RegisterPayServiceServer(grpcServer, server)
+	serverPb.RegisterAuthServiceServer(grpcServer, server)
 	return grpcServer.Serve(listener)
 }
