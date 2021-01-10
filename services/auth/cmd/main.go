@@ -3,12 +3,12 @@ package main
 import (
 	"auth/cmd/app"
 	"auth/pkg/auth"
+	serverPb "auth/pkg/server"
 	"context"
-	"github.com/go-chi/chi"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"google.golang.org/grpc"
 	"log"
 	"net"
-	"net/http"
 	"os"
 )
 
@@ -40,6 +40,10 @@ func main() {
 }
 
 func execute(addr string, dsn string) error {
+	listener, err := net.Listen("tcp", addr)
+	if err != nil {
+		return err
+	}
 	ctx := context.Background()
 	pool, err := pgxpool.Connect(ctx, dsn)
 	if err != nil {
@@ -47,19 +51,9 @@ func execute(addr string, dsn string) error {
 		return err
 	}
 
-	authSvc := auth.NewService(pool)
-	mux := chi.NewRouter()
-
-	application := app.NewServer(authSvc, mux)
-	err = application.Init()
-	if err != nil {
-		log.Print(err)
-		return err
-	}
-
-	server := &http.Server{
-		Addr:    addr,
-		Handler: application,
-	}
-	return server.ListenAndServe()
+	grpcServer := grpc.NewServer()
+	authSVC := auth.NewService(pool)
+	server := app.NewServer(authSVC, ctx)
+	serverPb.RegisterPayServiceServer(grpcServer, server)
+	return grpcServer.Serve(listener)
 }

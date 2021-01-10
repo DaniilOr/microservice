@@ -2,118 +2,38 @@ package app
 
 import (
 	"auth/pkg/auth"
-	"encoding/json"
-	"errors"
-	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/middleware"
+	serverPb "auth/pkg/server"
+	"context"
 	"log"
-	"net/http"
 )
 
 type Server struct {
 	authSvc *auth.Service
-	mux     chi.Router
+	ctx context.Context
 }
 
-func NewServer(authSvc *auth.Service, mux chi.Router) *Server {
-	return &Server{authSvc: authSvc, mux: mux}
+func NewServer(authSvc *auth.Service, ctx context.Context) *Server {
+	return &Server{authSvc: authSvc, ctx: ctx }
 }
 
-func (s *Server) Init() error {
-	s.mux.Use(middleware.RealIP)
-
-	s.mux.Route("/api", func(r chi.Router) {
-		r.Post("/token", s.token)
-		r.Post("/id", s.id)
-	})
-
-	return nil
-}
-
-func (s *Server) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
-	s.mux.ServeHTTP(writer, request)
-}
-
-func (s *Server) token(writer http.ResponseWriter, request *http.Request) {
-	// for simplicity just define locally
-	type requestDTO struct {
-		Login    string `json:"login"`
-		Password string `json:"password"`
-	}
-
-	type responseDTO struct {
-		Token string `json:"token"`
-	}
-
-	var reqDTO requestDTO
-	err := json.NewDecoder(request.Body).Decode(&reqDTO)
+func (s *Server) Token(ctx context.Context, request *serverPb.TokenRequest) ( * serverPb.TokenResponse, error) {
+	token, err := s.authSvc.Login(ctx, request.Login, request.Password)
 	if err != nil {
-		http.Error(writer, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-		return
+		log.Println(err)
+		return nil, err
 	}
-
-	token, err := s.authSvc.Login(request.Context(), reqDTO.Login, reqDTO.Password)
-	if err != nil {
-		if errors.Is(err, auth.ErrUserNotFound) || errors.Is(err, auth.ErrInvalidPass) {
-			http.Error(writer, http.StatusText(http.StatusForbidden), http.StatusForbidden)
-			return
-		}
-		http.Error(writer, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
-
-	respDTO := responseDTO{Token: token}
-	data, err := json.Marshal(respDTO)
-	if err != nil {
-		http.Error(writer, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
-
-	writer.Header().Set("Content-Type", "application/json")
-	_, err = writer.Write(data)
-	if err != nil {
-		log.Print(err)
-	}
+	response := serverPb.TokenResponse{Token: token}
+	return &response, nil
 }
 
 // Доступно всем
-func (s *Server) id(writer http.ResponseWriter, request *http.Request) {
-	// for simplicity just define locally
-	type requestDTO struct {
-		Token string `json:"token"`
-	}
-
-	type responseDTO struct {
-		UserID int64 `json:"userId"`
-	}
-
-	var reqDTO requestDTO
-	err := json.NewDecoder(request.Body).Decode(&reqDTO)
+func (s *Server) Id (ctx context.Context, request *serverPb.IdRequest) (*serverPb.IdResponse, error) {
+	userID, err := s.authSvc.UserID(ctx, request.Token)
 	if err != nil {
-		http.Error(writer, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-		return
+		log.Println(err)
+		return nil, err
 	}
 
-	userID, err := s.authSvc.UserID(request.Context(), reqDTO.Token)
-	if err != nil {
-		if errors.Is(err, auth.ErrUserNotFound) || errors.Is(err, auth.ErrInvalidPass) {
-			http.Error(writer, http.StatusText(http.StatusForbidden), http.StatusForbidden)
-			return
-		}
-		http.Error(writer, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
-
-	respDTO := responseDTO{UserID: userID}
-	data, err := json.Marshal(respDTO)
-	if err != nil {
-		http.Error(writer, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
-
-	writer.Header().Set("Content-Type", "application/json")
-	_, err = writer.Write(data)
-	if err != nil {
-		log.Print(err)
-	}
+	response := serverPb.IdResponse{UserId: userID}
+	return &response, nil
 }
