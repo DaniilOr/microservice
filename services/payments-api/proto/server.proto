@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package payments_api;
+option go_package = "pkg/server";
+
+
+service PaymentsServer{
+  rpc Pay(PaymentTransactionsRequest) returns(PaymentTransactionsResponse);
+}
+
+
+message PaymentTransactionsRequest{
+  int64 UserID=1;
+  int64 Amount=2;
+  string Category=3;
+}
+
+message PaymentTransactionsResponse{
+  bool Ok=1;
+}
