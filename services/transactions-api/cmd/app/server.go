@@ -17,7 +17,6 @@ func NewServer(transactionsSvc *transactions.Service, ctx context.Context) *Serv
 }
 
 func (s *Server) Transactions(ctx context.Context, request * serverPb.TransactionsRequest) (*serverPb.TransactionsResponse, error){
-
 	userID := request.UserID
 	data, err := s.transactionsSvc.Transactions(ctx, userID)
 	if err != nil {

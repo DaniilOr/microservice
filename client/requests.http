@@ -1,4 +1,3 @@
-
 ### меняем логин и пароль на токен
 
 POST http://localhost:9999/api/token
@@ -14,7 +13,36 @@ client.test("Request executed successfully", function() {
 });
 %}
 
-### используем токен для запроса
+### проверяем транзакции
+
+GET http://localhost:9999/api/transactions
+Authorization: {{token}}
+
+> {%
+client.test("Request executed successfully", function() {
+  client.assert(response.status === 200, "Response status is not 200");
+  client.assert(response.contentType.mimeType === "application/json", "Expected 'application/json' but received '" + response.contentType.mimeType + "'");
+});
+%}
+
+### создаём платёж (см. лог docker-compose)
+
+POST http://localhost:9999/api/payments
+Authorization: {{token}}
+Content-Type: application/json
+
+{
+  "amount": 1000,
+  "category": "auto"
+}
+
+> {%
+client.test("Request executed successfully", function() {
+  client.assert(response.status === 200, "Response status is not 200");
+});
+%}
+
+### проверяем транзакции
 
 GET http://localhost:9999/api/transactions
 Authorization: {{token}}

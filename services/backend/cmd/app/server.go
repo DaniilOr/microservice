@@ -2,6 +2,7 @@ package app
 
 import (
 	"backend/pkg/auth"
+	"backend/pkg/payments"
 	"backend/pkg/transactions"
 	"context"
 	"encoding/json"
@@ -14,11 +15,12 @@ import (
 type Server struct {
 	authSvc         *auth.Service
 	transactionsSvc *transactions.Service
+	paymentsSvc     *payments.Service
 	mux             chi.Router
 }
 
-func NewServer(authSvc *auth.Service, transactionsSvc *transactions.Service, mux chi.Router) *Server {
-	return &Server{authSvc: authSvc, transactionsSvc: transactionsSvc, mux: mux}
+func NewServer(authSvc *auth.Service, transactionsSvc *transactions.Service, paymentsSvc *payments.Service, mux chi.Router) *Server {
+	return &Server{authSvc: authSvc, transactionsSvc: transactionsSvc, paymentsSvc: paymentsSvc, mux: mux}
 }
 
 func (s *Server) Init() error {
@@ -26,9 +28,13 @@ func (s *Server) Init() error {
 
 	s.mux.Route("/api", func(r chi.Router) {
 		r.Post("/token", s.token)
-		r.With(Auth(func(ctx context.Context, token string) (int64, error) {
+
+		authMd :=Auth(func(ctx context.Context, token string) (int64, error) {
 			return s.authSvc.Auth(ctx, token)
-		})).Get("/transactions", s.transactions)
+		})
+
+		r.With(authMd).Get("/transactions", s.transactions)
+		r.With(authMd).Post("/payments", s.pay)
 	})
 
 	return nil
@@ -91,7 +97,7 @@ func (s *Server) transactions(writer http.ResponseWriter, request *http.Request)
 
 	data, err := s.transactionsSvc.Transactions(request.Context(), userID)
 	if err != nil {
-		log.Printf("Transactions Service returns error: %v", err)
+		log.Printf("Payments Service returns error: %v", err)
 		http.Error(writer, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
@@ -99,7 +105,26 @@ func (s *Server) transactions(writer http.ResponseWriter, request *http.Request)
 	writer.Header().Set("Content-Type", "application/json")
 	_, err = writer.Write(data)
 	if err != nil {
+
 		log.Print(err)
 		return
 	}
+}
+
+func (s *Server) pay(writer http.ResponseWriter, request *http.Request) {
+	userID, err := AuthFrom(request.Context())
+	if err != nil {
+		log.Printf("can't find userID in context: %v", err)
+		http.Error(writer, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	_, err = s.paymentsSvc.Pay(request.Context(), userID, request.Body)
+	if err != nil {
+		log.Printf("Payments Service returns error: %v", err)
+		http.Error(writer, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	writer.WriteHeader(http.StatusOK)
 }

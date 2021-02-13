@@ -3,6 +3,7 @@ package main
 import (
 	"backend/cmd/app"
 	"backend/pkg/auth"
+	"backend/pkg/payments"
 	"backend/pkg/transactions"
 	"github.com/go-chi/chi"
 	"log"
@@ -16,6 +17,7 @@ const (
 	defaultHost               = "0.0.0.0"
 	defaultAuthURL            = "http://auth:9999"
 	defaultTransactionsAPIURL = "http://transactions-api:9999"
+	defaultPaymentsAPIURL     = "http://payments-api:9999"
 )
 
 func main() {
@@ -39,18 +41,23 @@ func main() {
 		transactionsAPIURL = defaultTransactionsAPIURL
 	}
 
-	if err := execute(net.JoinHostPort(host, port), authURL, transactionsAPIURL); err != nil {
+	paymentsAPIURL, ok := os.LookupEnv("APP_PAYMENTS_URL")
+	if !ok {
+		paymentsAPIURL = defaultPaymentsAPIURL
+	}
+
+	if err := execute(net.JoinHostPort(host, port), authURL, transactionsAPIURL, paymentsAPIURL); err != nil {
 		os.Exit(1)
 	}
 }
 
-func execute(addr string, authURL string, transactionsAPIURL string) error {
+func execute(addr string, authURL string, transactionsAPIURL string, paymentsAPIURL string) error {
 	authSvc := auth.NewService(&http.Client{}, authURL)
 	transactionsSvc := transactions.NewService(&http.Client{}, transactionsAPIURL)
-
+	paymentSvc := payments.NewService(&http.Client{}, paymentsAPIURL)
 	mux := chi.NewRouter()
 
-	application := app.NewServer(authSvc, transactionsSvc, mux)
+	application := app.NewServer(authSvc, transactionsSvc, paymentSvc, mux)
 	err := application.Init()
 	if err != nil {
 		log.Print(err)
