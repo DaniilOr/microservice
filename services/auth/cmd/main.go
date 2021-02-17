@@ -5,10 +5,8 @@ import (
 	"auth/pkg/auth"
 	serverPb "auth/pkg/server"
 	"context"
-	"contrib.go.opencensus.io/exporter/jaeger"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.opencensus.io/plugin/ocgrpc"
-	"go.opencensus.io/trace"
 	"google.golang.org/grpc"
 	"log"
 	"net"
@@ -16,29 +14,11 @@ import (
 )
 
 const (
-	defaultPort = "9999"
+	defaultPort = "8080"
 	defaultHost = "0.0.0.0"
 	defaultDSN  = "postgres://app:pass@authdb:5432/db"
 )
-func InitJaeger(serviceName string) error{
-	exporter, err := jaeger.NewExporter(jaeger.Options{
-		AgentEndpoint: "localhost:6831",
-		Process: jaeger.Process{
-			ServiceName: serviceName,
-			Tags: []jaeger.Tag{
-				jaeger.StringTag("hostname", "localhost"),
-			},
-		},
-	})
-	if err != nil {
-		return err
-	}
-	trace.RegisterExporter(exporter)
-	trace.ApplyConfig(trace.Config{
-		DefaultSampler: trace.AlwaysSample(),
-	})
-	return nil
-}
+
 func main() {
 	port, ok := os.LookupEnv("APP_PORT")
 	if !ok {
@@ -54,11 +34,7 @@ func main() {
 	if !ok {
 		dsn = defaultDSN
 	}
-	err := InitJaeger("auth")
-	if err != nil{
-		log.Println(err)
-		os.Exit(1)
-	}
+
 	if err := execute(net.JoinHostPort(host, port), dsn); err != nil {
 		os.Exit(1)
 	}
