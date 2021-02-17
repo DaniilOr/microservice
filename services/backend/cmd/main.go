@@ -14,8 +14,8 @@ import (
 const (
 	defaultPort               = "9999"
 	defaultHost               = "0.0.0.0"
-	defaultAuthURL            = "http://auth:9999"
-	defaultTransactionsAPIURL = "http://transactions-api:9999"
+	defaultAuthURL            = "0.0.0.0:8080"
+	defaultTransactionsAPIURL = "0.0.0.0:8888"
 )
 
 func main() {
