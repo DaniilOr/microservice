@@ -1,8 +1,8 @@
 package app
 
 import (
-	"backend/pkg/auth"
-	"backend/pkg/transactions"
+	"github.com/DaniilOr/microservice/backend/pkg/auth"
+	"github.com/DaniilOr/microservice/backend/pkg/transactions"
 	"context"
 	"encoding/json"
 	"github.com/go-chi/chi"

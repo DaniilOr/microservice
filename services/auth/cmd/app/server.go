@@ -1,8 +1,8 @@
 package app
 
 import (
-	"auth/pkg/auth"
-	serverPb "auth/pkg/server"
+	"github.com/DaniilOr/microservice/auth/pkg/auth"
+	serverPb "github.com/DaniilOr/microservice/auth/pkg/server"
 	"context"
 	"go.opencensus.io/trace"
 	"log"

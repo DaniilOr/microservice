@@ -1,4 +1,4 @@
-module backend
+module github.com/DaniilOr/microservice/backend
 
 go 1.15
 

@@ -1,9 +1,9 @@
 package main
 
 import (
-	"backend/cmd/app"
-	"backend/pkg/auth"
-	"backend/pkg/transactions"
+	"github.com/DaniilOr/microservice/backend/cmd/app"
+	"github.com/DaniilOr/microservice/backend/pkg/auth"
+	"github.com/DaniilOr/microservice/backend/pkg/transactions"
 	"github.com/go-chi/chi"
 	"log"
 	"net"
