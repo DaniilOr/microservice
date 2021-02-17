@@ -2,7 +2,10 @@ package main
 
 import (
 	"context"
+	"contrib.go.opencensus.io/exporter/jaeger"
+	"go.opencensus.io/trace"
 	"google.golang.org/grpc"
+	"log"
 	"net"
 	"net/http"
 	"os"
@@ -16,6 +19,25 @@ const (
 	defaultHost = "0.0.0.0"
 	defaultTransactionsURL = "http://transactions:9999"
 )
+func InitJaeger(serviceName string) error{
+	exporter, err := jaeger.NewExporter(jaeger.Options{
+		AgentEndpoint: "localhost:6831",
+		Process: jaeger.Process{
+			ServiceName: serviceName,
+			Tags: []jaeger.Tag{
+				jaeger.StringTag("hostname", "localhost"),
+			},
+		},
+	})
+	if err != nil {
+		return err
+	}
+	trace.RegisterExporter(exporter)
+	trace.ApplyConfig(trace.Config{
+		DefaultSampler: trace.AlwaysSample(),
+	})
+	return nil
+}
 
 func main() {
 	port, ok := os.LookupEnv("APP_PORT")
@@ -32,7 +54,11 @@ func main() {
 	if !ok {
 		transactionsURL = defaultTransactionsURL
 	}
-
+	err := InitJaeger("transactions")
+	if err != nil{
+		log.Println(err)
+		os.Exit(1)
+	}
 	if err := execute(net.JoinHostPort(host, port), transactionsURL); err != nil {
 		os.Exit(1)
 	}

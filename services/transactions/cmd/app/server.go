@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"go.opencensus.io/trace"
 	serverPb "transactions/pkg/server"
 	"log"
 	"transactions/pkg/transactions"
@@ -17,7 +18,8 @@ func NewServer(transactionsSvc *transactions.Service, ctx context.Context) *Serv
 }
 
 func (s *Server) Transactions(ctx context.Context, request * serverPb.TransactionsRequest) (*serverPb.TransactionsResponse, error){
-
+	ctx, span := trace.StartSpan(ctx, "route: transaction")
+	defer span.End()
 	userID := request.UserID
 
 	records, err := s.transactionsSvc.Transactions(ctx, userID)

@@ -3,6 +3,7 @@ module auth
 go 1.15
 
 require (
+	contrib.go.opencensus.io/exporter/jaeger v0.2.1 // indirect
 	github.com/go-chi/chi v4.1.2+incompatible
 	github.com/golang/protobuf v1.4.3
 	github.com/google/uuid v1.1.2
