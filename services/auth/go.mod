@@ -1,4 +1,4 @@
-module github.com/DaniilOr/microservice/auth
+module auth
 
 go 1.15
 
