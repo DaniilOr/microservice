@@ -40,6 +40,7 @@ func (s *Service) Token(ctx context.Context, login string, password string) (tok
 	resp, err := client.Token(ctx, &serverPb.TokenRequest{
 		Login: login,
 		Password: password,
+
 	})
 
 	if err != nil {

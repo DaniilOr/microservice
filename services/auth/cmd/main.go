@@ -1,9 +1,9 @@
 package main
 
 import (
-	"auth/cmd/app"
-	"auth/pkg/auth"
-	serverPb "auth/pkg/server"
+	"github.com/DaniilOr/microservice/auth/pkg/auth"
+	"github.com/DaniilOr/microservice/auth/cmd/app"
+	serverPb "github.com/DaniilOr/microservice/auth/pkg/server"
 	"context"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"go.opencensus.io/plugin/ocgrpc"
