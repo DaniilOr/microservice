@@ -6,6 +6,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/status"
 	"log"
+	"net"
 	"net/http"
 	"time"
 )
@@ -18,11 +19,13 @@ type Service struct {
 func NewService(client *http.Client, url string) *Service {
 	return &Service{client: client, url: url}
 }
+const defaultPort = "8080"
+const defaultHost = "0.0.0.0"
 
 func (s *Service) Token(ctx context.Context, login string, password string) (token string, err error) {
 	// for simplicity just define locally
 
-	conn, err := grpc.Dial(s.url, grpc.WithInsecure())
+	conn, err := grpc.Dial(net.JoinHostPort(defaultHost, defaultPort), grpc.WithInsecure())
 	if err != nil {
 		return "", err
 	}
